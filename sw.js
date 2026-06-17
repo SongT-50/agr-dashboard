@@ -1,6 +1,6 @@
 // 농가 경영진단 AI 대시보드 — Service Worker
 // 오프라인/재방문 시 빠른 로딩 (네트워크 우선, 실패 시 캐시 폴백)
-const CACHE = 'agr-dashboard-v3';
+const CACHE = 'agr-dashboard-v4';
 const ASSETS = [
   './',
   './index.html',

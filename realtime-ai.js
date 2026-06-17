@@ -6,7 +6,7 @@
   'use strict';
 
   const PROVIDERS = ['anthropic', 'openai', 'gemini'];
-  const DEFAULT_MODELS = { anthropic: 'claude-sonnet-4-6', openai: 'gpt-4o', gemini: 'gemini-2.0-flash' };
+  const DEFAULT_MODELS = { anthropic: 'claude-sonnet-4-6', openai: 'gpt-5.4', gemini: 'gemini-3.5-flash' };
   const LABELS = { anthropic: 'Claude', openai: 'ChatGPT', gemini: 'Gemini' };
   const AI_KEYS = { anthropic: '', openai: '', gemini: '' };
   const AI_MODELS = Object.assign({}, DEFAULT_MODELS);
@@ -191,26 +191,63 @@
       const d = r.data;
       const tc = d.type_classification || {};
       const routes = (d.step4_route_evaluation || {}).routes || {};
-      const routeScores = Object.keys(routes).map((k) => {
+      // 경로별 상세: 점수순 정렬 + verdict + 평가항목(C1~C5) + 근거(reasoning)
+      const order = Object.keys(routes).sort((a, b) => ((routes[b] || {}).score || 0) - ((routes[a] || {}).score || 0));
+      const routeBlocks = order.map((k) => {
         const v = routes[k] || {};
-        return '<span style="display:inline-block;margin:2px 8px 2px 0"><b>' + esc(k) + '</b> ' + (v.score != null ? v.score + '점' : '-') + '</span>';
+        const vc = v.verdict || '';
+        const vColor = /가능|추천/.test(vc) ? '#22c55e' : /제한/.test(vc) ? '#f59e0b' : (vc ? '#ef4444' : 'var(--border)');
+        const cs = v.criteria_scores || {};
+        const csStr = Object.keys(cs).map((c) => c + ' ' + cs[c]).join(' · ');
+        return '<div style="margin:0 0 9px;padding:9px 11px;background:var(--bg-secondary);border-radius:8px;border-left:3px solid ' + vColor + '">' +
+          '<div style="font-size:13px"><b>' + esc(k) + '</b> <span style="font-weight:700">' + (v.score != null ? v.score + '점' : '-') + '</span>' +
+          (vc ? ' <span style="color:' + vColor + ';font-size:11.5px">[' + esc(vc) + ']</span>' : '') + '</div>' +
+          (csStr ? '<div style="font-size:11px;color:var(--text-secondary);margin-top:3px">평가항목 ' + esc(csStr) + '</div>' : '') +
+          (v.reasoning ? '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.55">↳ ' + esc(v.reasoning) + '</div>' : '') +
+          '</div>';
       }).join('');
       const port = ((d.step5_portfolio || {}).immediate || []).map((p) =>
-        esc(p.route) + ' <b>' + p.ratio + '%</b>(' + esc(p.role) + ')').join(' · ');
+        '<div style="font-size:12.5px;margin-bottom:5px">• ' + esc(p.route) + ' <b>' + p.ratio + '%</b> (' + esc(p.role) + ')' +
+        (p.reason ? ' <span style="color:var(--text-secondary)">— ' + esc(p.reason) + '</span>' : '') + '</div>').join('');
       return '<div class="chart-section" style="margin-bottom:14px">' +
         '<h3>' + r.name + ' — ' + esc(tc.type || '?') + '형</h3>' +
-        '<div style="font-size:12.5px;color:var(--text-secondary);margin-bottom:10px;line-height:1.6">' + esc(tc.reasoning || '') + '</div>' +
-        '<div style="font-size:12.5px;margin-bottom:8px"><b>경로 점수</b><br>' + routeScores + '</div>' +
-        '<div style="font-size:13px;margin-bottom:8px;line-height:1.6"><b>추천 포트폴리오</b>: ' + (port || '-') + '</div>' +
-        '<div style="font-size:12.5px;color:var(--text-secondary);line-height:1.7">' + esc(d.step9_one_line_conclusion || '') + '</div>' +
+        '<div style="font-size:12.5px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6"><b>유형 판정 근거</b><br>' + esc(tc.reasoning || '') + '</div>' +
+        '<div style="font-size:12.5px;font-weight:700;margin-bottom:7px">경로별 평가 (점수순 · 근거)</div>' + routeBlocks +
+        '<div style="font-size:12.5px;font-weight:700;margin:11px 0 6px">추천 포트폴리오</div>' + (port || '-') +
+        (d.step9_one_line_conclusion ? '<div style="font-size:12.5px;color:var(--text-secondary);line-height:1.7;margin-top:9px;padding-top:9px;border-top:1px solid var(--border)"><b>한 줄 결론</b> · ' + esc(d.step9_one_line_conclusion) + '</div>' : '') +
         '</div>';
     }).join('');
 
+    // 🤝 겹치는 부분(합의) 추천 — 2개 이상 모델일 때 공통 상위 경로 도출
+    let consensus = '';
+    if (ok.length >= 2) {
+      const agg = {};
+      ok.forEach((r) => {
+        const rt = (r.data.step4_route_evaluation || {}).routes || {};
+        Object.keys(rt).forEach((k) => {
+          if (!agg[k]) agg[k] = { sum: 0, cnt: 0, pass: 0 };
+          const v = rt[k] || {};
+          if (v.score != null) { agg[k].sum += v.score; agg[k].cnt++; }
+          if (/가능|추천/.test(v.verdict || '')) agg[k].pass++;
+        });
+      });
+      const ranked = Object.keys(agg).map((k) => ({
+        route: k,
+        avg: agg[k].cnt ? Math.round(agg[k].sum / agg[k].cnt * 10) / 10 : 0,
+        allPass: agg[k].pass === ok.length
+      })).sort((a, b) => b.avg - a.avg);
+      const rows = ranked.slice(0, 3).map((t, i) =>
+        '<div style="font-size:12.5px;margin-bottom:4px">' + (i + 1) + '순위 <b>' + esc(t.route) + '</b> — 평균 ' + t.avg + '점' +
+        (t.allPass ? ' <span style="color:#22c55e">✅ 모든 모델 진입가능</span>' : ' <span style="color:var(--text-secondary)">(일부 모델만 추천)</span>') + '</div>').join('');
+      consensus = '<div style="background:rgba(34,197,94,0.08);border:1px solid #22c55e;border-radius:10px;padding:12px 14px;margin-bottom:14px">' +
+        '<div style="font-weight:700;margin-bottom:6px">🤝 ' + ok.length + '개 모델 종합 추천 (겹치는 부분)</div>' +
+        '<div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:8px">각 모델 경로 점수의 평균. 여러 모델이 공통으로 높게 본 경로일수록 신뢰도가 높습니다.</div>' + rows + '</div>';
+    }
     const failNote = fail.length ? '<div style="font-size:11.5px;color:var(--text-secondary);margin-top:6px">실패: ' +
       fail.map((f) => f.name + ' (' + esc(f.error) + ')').join(', ') + '</div>' : '';
     const note = '<div style="font-size:11.5px;color:var(--text-secondary);margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">' +
       '⚡ 실시간 AI 진단 (입력하신 키로 호출 — 비용 발생). 점수는 AI 판단이며 농가 데이터 기반 참고 자료입니다.</div>';
-    panel.innerHTML = banner + cards + failNote + note;
+    panel.innerHTML = banner + consensus + cards + failNote + note;
   }
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }

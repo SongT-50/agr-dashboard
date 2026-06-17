@@ -841,8 +841,8 @@ body {
       <div class="ai-settings-body">
         <div class="ai-sec-note">🔒 <b>API 키는 이 브라우저에만 저장</b>됩니다(localStorage). 우리 서버·GitHub로 전송되지 않고, 페이지 코드에도 저장되지 않습니다. <b>공용 PC에서는 입력하지 마세요.</b> 실시간 호출 비용은 입력하신 키로 과금됩니다(본인 부담). 키를 저장하면 좌측에 직접 입력 후 "포트폴리오 진단 실행" 시 실시간 교차검증이 작동합니다.</div>
         <div class="ai-key-row"><label>Anthropic (Claude)</label><input type="password" id="ak-anthropic" data-ph="sk-ant-..." placeholder="sk-ant-..."><input type="text" id="am-anthropic" value="claude-sonnet-4-6" title="모델 ID"></div>
-        <div class="ai-key-row"><label>OpenAI (GPT)</label><input type="password" id="ak-openai" data-ph="sk-..." placeholder="sk-..."><input type="text" id="am-openai" value="gpt-4o" title="모델 ID"></div>
-        <div class="ai-key-row"><label>Google (Gemini)</label><input type="password" id="ak-gemini" data-ph="AIza..." placeholder="AIza..."><input type="text" id="am-gemini" value="gemini-2.0-flash" title="모델 ID"></div>
+        <div class="ai-key-row"><label>OpenAI (GPT)</label><input type="password" id="ak-openai" data-ph="sk-..." placeholder="sk-..."><input type="text" id="am-openai" value="gpt-5.4" title="모델 ID"></div>
+        <div class="ai-key-row"><label>Google (Gemini)</label><input type="password" id="ak-gemini" data-ph="AIza..." placeholder="AIza..."><input type="text" id="am-gemini" value="gemini-3.5-flash" title="모델 ID"></div>
         <div class="ai-actions"><button onclick="saveApiKeys()">저장</button><button class="ghost" onclick="clearApiKeys()">삭제</button><span id="ai-key-status"></span></div>
       </div>
     </details>
@@ -1747,9 +1747,10 @@ function runPortfolio() {
   const c = caseId ? RDA_CASES.cases.find(x => x.id === caseId) : null;
   if (!c) {
     const cropV = document.getElementById('f-crop') ? document.getElementById('f-crop').value : '';
+    // API 키 있으면 실시간 AI 맞춤 진단 우선 (농가 입력 반영). 키 없으면 실측 보유 작목은 기본 실측 컨설팅, 그 외는 참고 안내.
+    if (window.hasAnyApiKey && window.hasAnyApiKey()) { window.runRealtimeDiagnosis(); return; }
     if (window.hasRealData && window.hasRealData(cropV)) { window.renderRealData(); return; }
-    if (window.hasAnyApiKey && window.hasAnyApiKey()) window.runRealtimeDiagnosis();
-    else renderDirectInputGuide();
+    renderDirectInputGuide();
     return;
   }
 
