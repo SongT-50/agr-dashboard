@@ -7,6 +7,7 @@ const ASSETS = [
   './manifest.json',
   './data/income_2024.json',
   './data/pubdata-catalog.json',
+  './data/rda-cases.json',
   './data/rda-cases.sample.json',
   './icon-192.png',
   './icon-512.png'
