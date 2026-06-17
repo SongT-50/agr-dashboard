@@ -215,7 +215,48 @@
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
+  // ── 실측 컨설팅 (소득조사 132농가 + 출하전략 자료) ──────────
+  let REAL_DATA = null;
+  async function loadRealData() {
+    try { const r = await fetch('data/tomato-realdata.json?t=' + Date.now()); if (r.ok) REAL_DATA = await r.json(); } catch (e) {}
+  }
+  function renderRealData() {
+    const panel = document.getElementById('port-result');
+    if (!panel) return;
+    if (!REAL_DATA) { panel.innerHTML = '<div class="empty-state"><div>실측 데이터를 불러오는 중입니다. 잠시 후 다시 눌러주세요.</div></div>'; loadRealData(); return; }
+    const d = REAL_DATA, ir = d.income_rate;
+    const maxRatio = Math.max.apply(null, d.routes_distribution.map((x) => x.avg_ratio));
+    const distRows = d.routes_distribution.map((x) =>
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12.5px">' +
+      '<span style="width:130px">' + esc(x.route) + '</span>' +
+      '<span style="flex:1;background:rgba(34,197,94,0.12);border-radius:4px;height:18px;position:relative;overflow:hidden">' +
+      '<span style="position:absolute;left:0;top:0;height:100%;width:' + (x.avg_ratio / maxRatio * 100) + '%;background:#22c55e"></span></span>' +
+      '<span style="width:118px;text-align:right;color:var(--text-secondary)">' + x.avg_ratio + '% · ' + x.farms + '호</span></div>'
+    ).join('');
+    const byRows = d.income_by_main_route.map((x) =>
+      '<tr><td style="padding:4px 0">' + esc(x.route) + '</td><td style="text-align:right">' + x.farms + '</td>' +
+      '<td style="text-align:right;font-weight:600;color:#22c55e">' + x.income_rate_mean + '%</td>' +
+      '<td style="text-align:right">' + (x.price_mean ? x.price_mean.toLocaleString() + '원' : '-') + '</td></tr>'
+    ).join('');
+    const strat = d.strategy.map((s) => '<li style="margin-bottom:6px"><b>' + esc(s.title) + '</b> — ' + esc(s.point) + '</li>').join('');
+    panel.innerHTML =
+      '<div class="chart-section">' +
+      '<h3>📊 시설방울토마토 실측 컨설팅 <span style="font-size:12px;font-weight:400;color:#22c55e">실제 데이터 기반</span></h3>' +
+      '<div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5">' + esc(d.source) + '</div>' +
+      '<div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:16px;font-size:12.5px;line-height:1.7">' +
+      '<b>소득률</b> 평균 ' + ir.mean + '% · 중앙 ' + ir.median + '% (범위 ' + ir.min + '~' + ir.max + '%) &nbsp;|&nbsp; 상품화율 ' + d.quality_rate_mean + '% &nbsp;|&nbsp; 표본 ' + d.n_farms + '농가</div>' +
+      '<div style="font-weight:600;margin-bottom:8px">① 실제 판매경로 분포</div>' + distRows +
+      '<div style="font-weight:600;margin:18px 0 8px">② 주력 경로별 소득률·수취단가 (높은 순)</div>' +
+      '<table style="width:100%;font-size:12.5px;border-collapse:collapse"><thead><tr style="color:var(--text-secondary);border-bottom:1px solid var(--border)"><th style="text-align:left;padding-bottom:6px">주력경로</th><th style="text-align:right">농가</th><th style="text-align:right">평균소득률</th><th style="text-align:right">수취단가</th></tr></thead><tbody>' + byRows + '</tbody></table>' +
+      '<div style="font-weight:600;margin:18px 0 8px">③ 출하전략 (농진청 거래특성·출하전략 자료)</div><ul style="font-size:12.5px;color:var(--text-secondary);line-height:1.65;padding-left:18px;margin:0">' + strat + '</ul>' +
+      '<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:14px;margin-top:16px;font-size:13px;line-height:1.85"><b>💡 종합 컨설팅</b><br>' + esc(d.consulting) + '</div>' +
+      '<div style="font-size:11px;color:var(--text-secondary);margin-top:10px;line-height:1.5">⚠️ ' + esc(d.caveat) + '</div>' +
+      '</div>';
+  }
+
   // 전역 노출 (index.html에서 호출)
+  window.loadRealData = loadRealData;
+  window.renderRealData = renderRealData;
   window.loadApiKeys = loadApiKeys;
   window.saveApiKeys = saveApiKeys;
   window.clearApiKeys = clearApiKeys;

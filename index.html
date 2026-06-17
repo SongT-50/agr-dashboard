@@ -832,6 +832,7 @@ body {
           <label>AI 모델</label>
           <select id="port-model"><option value="sonnet-4-6">Claude Sonnet 4.6</option><option value="opus-4-7">Claude Opus 4.7</option></select>
         </div>
+        <div class="pb-control"><label>실측 자료</label><button onclick="renderRealData()" style="background:#22c55e;color:#fff;border:none;padding:7px 13px;border-radius:6px;font-size:12.5px;cursor:pointer;font-weight:600;white-space:nowrap">📊 방울토마토 실측 컨설팅</button></div>
       </div>
     </div>
 
@@ -2101,6 +2102,7 @@ async function init() {
   loadPubdata();
   initDebugTab();
   if (window.loadApiKeys) window.loadApiKeys();
+  if (window.loadRealData) window.loadRealData();
 }
 init();
 </script>
