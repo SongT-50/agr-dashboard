@@ -1,0 +1,26 @@
+{
+  "name": "농가 경영진단 AI 대시보드",
+  "short_name": "농가진단",
+  "description": "농진청 작목별 경영 데이터(29작목) 기반 AI 컨설팅 대시보드 — 대전중앙청과(주)",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f1420",
+  "theme_color": "#0f1420",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

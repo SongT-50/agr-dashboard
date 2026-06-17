@@ -1,0 +1,426 @@
+{
+  "meta": {
+    "version": "0.3.0-sample",
+    "generated_at": "2026-04-23T21:00:00+09:00",
+    "generated_by": "PIPE-T3 (Agent tool model=sonnet/opus 병렬 + codex:codex-rescue 3번째 모델 독립 검증)",
+    "models_used": ["claude-sonnet-4-6", "claude-opus-4-7", "codex-gpt-5-3-codex"],
+    "prompt_variants": ["v4"],
+    "prompt_sources": {
+      "v4": "농가-판매경로-포트폴리오-프롬포트_v4.txt (250줄, 일반 농가)"
+    },
+    "topsis_version": "v4 (5농가유형 × 5평가기준, C5 동적조정)",
+    "replaced": "AGR-T3 19:11 임시 플레이스홀더 덮어씀 (3모델 교차검증 완료)",
+    "xmr_verification": {
+      "status": "COMPLETE",
+      "majority_vote": "C5 = 진입가능성(동적) — 2:1 (Opus + Codex vs Sonnet)",
+      "sonnet_minority_error": "Sonnet이 C5를 '수익성'으로 오해석. 상위 계열(Opus) + 다른 계열(Codex) 2개 독립 모델이 잡아냄",
+      "meeting_card_2_evidence": "단일 모델(농진청 Sonnet 4) → 다계열×다시선 적용 시 이런 해석 오류 잡을 수 있음을 정량 실증"
+    },
+    "cross_model_findings": [
+      {
+        "type": "c5_interpretation_divergence",
+        "severity": "HIGH",
+        "detail": "Sonnet-4-6가 C5를 '수익성'으로 해석(오류). Opus-4-7 + Codex-gpt-5.3 둘 다 v4 원문·HTML §3 공식 정의대로 '진입가능성(동적)' 해석. 3모델 다수결 2:1로 Sonnet 소수 오류 확정. 농진청 Sonnet 4 단일 시스템의 잠재 기준 해석 불일치 정량 실증 — XMR 논문 근거.",
+        "recommendation": "농진청 Sonnet 4 단일 시스템에 Opus 또는 다른 계열 검증 층 1개 추가 시 이 유형 오류 잡을 수 있음. 미팅 카드 2(Union) 결정적 정량 증거."
+      },
+      {
+        "type": "portfolio_ratio_divergence",
+        "severity": "MEDIUM",
+        "detail": "3모델 주력 비중: Opus 40% / Sonnet 50% / Codex 45%. Codex가 두 Claude 중간값 수렴. 같은 A형이나 위험 허용도 해석 차이(Sonnet 적극 / Opus 보수 / Codex 중도). 도매 비중도 40/30/35로 세 모델 spectrum 형성.",
+        "recommendation": "세 해석 모두 v4 원칙 준수. Codex 중간값 45/35/20이 합의 지점 가능. 농가가 어느 쪽 선택할지는 도메인 전문가(Level 3) 판단."
+      },
+      {
+        "type": "route_score_divergence",
+        "severity": "MEDIUM",
+        "detail": "3모델 경로 점수 변동: 도매시장 62/62/72 (Codex 물량처리 안전판 중시), 직거래(온라인) 78/82/84, 산지유통인 35/44/49. Codex가 전반적으로 보수적·안정적 해석 경향 — 도메인 독립적 시선이 '물량 처리'와 '진입 여유'에 가중.",
+        "recommendation": "Codex 해석은 '위험 분산' 축에 강함. 미팅에서 '보수적 시선'의 가치 강조 가능."
+      },
+      {
+        "type": "stability_preference_divergence",
+        "severity": "LOW",
+        "detail": "안정성 선호 판정 3모델: Opus '보통' / Sonnet '낮음' / Codex '낮음~보통'. Codex 중간 스펙트럼. 도매 80% 유지를 '안정 확보'로 볼지 '직거래 부족 불만'으로 볼지 해석 차이.",
+        "recommendation": "정성 지표 경계 케이스. 추가 5문항으로 세분화 고려. Codex의 '낮음~보통' 표기 방식이 범위 해석의 한 방법."
+      }
+    ]
+  },
+
+  "reference": {
+    "types": {
+      "A": {"name": "수익극대화형", "signals": "profit↑ challenge↑", "lean": "직거래(온라인) 주력"},
+      "B": {"name": "성장형", "signals": "profit↑ challenge↓", "lean": "도매 → 직거래 확대"},
+      "C": {"name": "안정자립형", "signals": "profit≤stable org↓", "lean": "도매시장 중심"},
+      "D": {"name": "안정의존형", "signals": "org↑ profit≤stable", "lean": "생산자단체 중심"},
+      "E": {"name": "균형형", "signals": "혼합·중립", "lean": "도매시장 중립"}
+    },
+    "criteria": {
+      "C1": {"name": "수취가격 수준", "direction": "positive"},
+      "C2": {"name": "물량처리 용이성", "direction": "positive"},
+      "C3": {"name": "노동부담", "direction": "negative"},
+      "C4": {"name": "가격 안정성", "direction": "positive"},
+      "C5": {"name": "진입 가능성", "direction": "dynamic", "adjusted_by": ["온라인경험", "클레임경험", "시간투입", "로컬접근성", "저장성"]}
+    },
+    "weights": {
+      "A": [0.35, 0.15, 0.10, 0.15, 0.25],
+      "B": [0.30, 0.15, 0.10, 0.15, 0.30],
+      "C": [0.15, 0.25, 0.15, 0.30, 0.15],
+      "D": [0.10, 0.25, 0.20, 0.35, 0.10],
+      "E": [0.20, 0.20, 0.20, 0.20, 0.20]
+    },
+    "routes": ["도매시장", "생산자단체(조직출하)", "직거래(온라인)", "직거래(로컬푸드)", "산지유통인"],
+    "score_bands": {
+      "80+": "주력 후보",
+      "60-79": "보완 후보",
+      "40-59": "제한적 활용",
+      "<40": "비추천"
+    },
+    "portfolio_rules": {
+      "main_ratio": [40, 60],
+      "sub_ratio": [20, 40],
+      "buffer_ratio": [10, 30],
+      "max_routes": 3,
+      "formula": "score = dMinus / (dPlus + dMinus) × 100"
+    }
+  },
+
+  "cases": [
+    {
+      "id": "case-01",
+      "label": "A형 수익극대화 / 시설딸기 소농 (도전적, 온라인경험 有)",
+      "type_expected": "A",
+      "prompt_variant": "v4",
+      "tags": ["시설딸기", "A형", "소농", "온라인경험", "논산"],
+
+      "input": {
+        "basic": {
+          "crop": "시설딸기",
+          "variety": "설향",
+          "area_m2": 3000,
+          "annual_volume_kg": 9800,
+          "harvest_period": "11월~4월",
+          "storage": "낮음",
+          "grade_ratio": {"sang": 60, "jung": 30, "ha": 10},
+          "region": "충남 논산시",
+          "local_access": "좋음"
+        },
+        "labor": {"age": 45, "family_workers": 2, "pack_capable": "있음"},
+        "sales_capacity": {
+          "direct_experience": "지속적",
+          "online_experience": "있음",
+          "claim_experience": "있음",
+          "time_invest": "충분",
+          "negotiation": "괜찮음",
+          "packing": "가능",
+          "current_routes": "도매시장 80%, 로컬푸드 20%"
+        },
+        "behavior_5q": {
+          "q1_price_response": "거래처 다양화 시도 또는 저장 후 분할 출하",
+          "q2_new_route_try": "네, 온라인 스마트스토어 6개월 운영 경험 있음",
+          "q3_biggest_complaint": "가격이 낮고 직거래 물량이 제한적",
+          "q4_claim_handling": "네, 본인이 직접 응대함",
+          "q5_shipment_decision": "시황 보고 직접 판단"
+        }
+      },
+
+      "results": {
+        "sonnet-4-6": {
+          "model_id": "claude-sonnet-4-6",
+          "generated_at": "2026-04-23T20:45:00+09:00",
+          "token_usage": null,
+          "latency_ms": 197856,
+          "interpretation_note": "⚠️ Sonnet은 C5를 '수익성'으로 해석(오류). v4 원문·HTML §3 공식 정의는 '진입가능성(동적)'.",
+          "step1_realism_check": {
+            "passed": true,
+            "warnings": [
+              {
+                "field": "q1_price_response / storage",
+                "severity": "낮음",
+                "detail": "설향은 저장성이 낮아 '저장 후 분할 출하' 전략을 문자 그대로 적용하기 어렵다. 수확 일정 조정을 통한 분산 출하로 해석해야 현실적."
+              }
+            ],
+            "missing_info": ["로컬푸드 매장까지의 실제 이동 거리·소요 시간 미입력"]
+          },
+          "step2_farm_summary": "충남 논산시 시설딸기(설향) 3,000m², 연간 9,800kg 출하. 11월~4월 6개월 연속 신선 출하형이며 저장성이 낮아 즉시 처리가 원칙. 45세 농가주 + 가족 2인 노동력으로 포장·클레임·시황 판단을 자립 운영. 스마트스토어 6개월 운영 선례와 지속적 직거래 경험 보유.",
+          "step3_qualitative": {
+            "marketing_overall": "높음",
+            "online_capability": "보통",
+            "challenge_tendency": "높음",
+            "stability_preference": "낮음",
+            "negotiation_style": "보통"
+          },
+          "type_classification": {
+            "type": "A",
+            "signals": {"profit": 5, "stable": 1, "challenge": 4, "org": 1},
+            "reasoning": "수익 극대화 지향(profit=5), 안정성 선호 낮음(stable=1), 신규 경로 실험 의지 높음(challenge=4), 조직 참여 동기 낮음(org=1). A형 판정 명확."
+          },
+          "step4_route_evaluation": {
+            "weights_used": [0.35, 0.15, 0.10, 0.15, 0.25],
+            "weights_label_by_model": ["C1_물량처리규격화", "C2_안정성", "C3_진입장벽", "C4_노동부담", "C5_수익성"],
+            "c5_adjustments": {
+              "도매시장": "A형은 C5(수익성) 비중 0.25 적용. 도매 경매가가 직거래 대비 낮아 감점",
+              "생산자단체(조직출하)": "공동분배 구조로 상품 프리미엄 분산 → C5 감점",
+              "직거래(온라인)": "단가 프리미엄 최대 → C5 가점 최대",
+              "직거래(로컬푸드)": "도매보다 단가 높으나 온라인 대비 낮음",
+              "산지유통인": "경로 중 단가 최저 → C5 최대 감점"
+            },
+            "routes": {
+              "도매시장": {
+                "verdict": "진입가능",
+                "score": 62,
+                "criteria_scores": {"C1": 75, "C2": 70, "C3": 85, "C4": 80, "C5": 35},
+                "reasoning": "물량 처리·거래관계 기구축으로 C1/C2/C3/C4 양호. A형 핵심 가중치 C5(수익성)에서 경매 단가 열세로 대폭 감점."
+              },
+              "생산자단체(조직출하)": {
+                "verdict": "조건부가능",
+                "score": 48,
+                "criteria_scores": {"C1": 65, "C2": 75, "C3": 50, "C4": 70, "C5": 25},
+                "reasoning": "규격화 기반 갖춰졌으나 A형 성향과 조직 참여 구조 충돌. C5 공동분배 구조로 최대 감점."
+              },
+              "직거래(온라인)": {
+                "verdict": "진입가능",
+                "score": 82,
+                "criteria_scores": {"C1": 65, "C2": 45, "C3": 70, "C4": 60, "C5": 90},
+                "reasoning": "C5(수익성) 최고점. 스마트스토어 경험·클레임 대응·포장·시간 투입으로 C3/C4 양호."
+              },
+              "직거래(로컬푸드)": {
+                "verdict": "진입가능",
+                "score": 68,
+                "criteria_scores": {"C1": 60, "C2": 65, "C3": 75, "C4": 55, "C5": 65},
+                "reasoning": "현재 운영 중 경로로 진입장벽 낮음. 도매보다 단가 높아 C5 중간 가점."
+              },
+              "산지유통인": {
+                "verdict": "조건부가능",
+                "score": 44,
+                "criteria_scores": {"C1": 55, "C2": 50, "C3": 70, "C4": 80, "C5": 20},
+                "reasoning": "C4 낮아 편의성 높으나 A형 C5에서 경로 중 최저 단가로 최대 감점."
+              }
+            }
+          },
+          "step5_portfolio": {
+            "immediate": [
+              {"route": "직거래(온라인)", "ratio": 50, "role": "주력", "reason": "스마트스토어 운영 선례 + 클레임 대응 + 포장 가능 + 시간 투입. A형 수익 극대화에 가장 직접 기여"},
+              {"route": "도매시장", "ratio": 30, "role": "보완", "reason": "중·하품 소화 + 수확 피크 시 물량 안전망. 현재 80%에서 단계적 축소"},
+              {"route": "직거래(로컬푸드)", "ratio": 20, "role": "완충", "reason": "현재 운영 중. 지역 소비자 접점·산지 브랜드 노출"}
+            ],
+            "expansion": "6~12개월 후 온라인 채널 단골 기반·재구매율 안정화 시 직거래(온라인) 60%로 확대, 도매 25%·로컬 15%."
+          },
+          "step6_strategic_reasoning": "A형 수익 극대화 성향 + 직거래 운영 역량 일치. 현재 도매 80%는 역량 대비 수익 과소 수취 구조. 온라인 50% 전환이 목표이나 채널 미성숙 상태에서 무리한 집중은 품질 클레임·주문 처리 실패 우려. 도매 30% 안전망 병행.",
+          "step7_competitive_tasks": {
+            "생산·수확": "수확 시각 최적화(이른 아침)로 초기 신선도 확보. 직거래·도매 물량 수확 시점부터 구분 관리.",
+            "선별·규격화": "온라인용 상품 기준(250~300g 균일) 명시화. 중·하품 도매 출하분으로 분리.",
+            "포장·소포장": "온라인 전용 500g·1kg 선물포장 + 아이스팩. 로컬푸드용 250g 소용량.",
+            "판매·마케팅": "스마트스토어 수확 전(10월) 재오픈·리뷰 유도. SNS 논산 딸기 수확 콘텐츠. 단골 문자 안내.",
+            "조직화·계약": "로컬푸드 출하 협약 갱신. 도매 중도매인 고정 거래 협의.",
+            "비상품 처리": "하품 10%(980kg) 가공업체 별도 거래처. 중품 일부 논산 학교·단체급식 납품 탐색."
+          },
+          "step8_current_comparison": {
+            "present_or_not": true,
+            "current_structure": "도매시장 80% + 로컬푸드 20%",
+            "recommended_structure": "직거래(온라인) 50% + 도매시장 30% + 로컬푸드 20%",
+            "advantages": "온라인 직판 단가 적용으로 수익성 개선 방향. 3경로 분산으로 단일 경로 충격 완충. 장기 브랜드 자산화 가능.",
+            "additional_burden": "온라인 주문 처리·포장·배송 관리 노동 추가. 피크(1~3월) 노동 집중 증가. 클레임 건수 증가 대비 루틴 정비.",
+            "directional": "현재 도매 80% 집중은 역량 대비 수익 과소 수취. 직거래 확대는 노동 증가 감수하는 대신 단가 프리미엄 수취 방향."
+          },
+          "step9_one_line_conclusion": "논산 딸기 설향의 산지 브랜드 가치와 이미 검증된 온라인·클레임 대응 역량을 바탕으로, 직거래(온라인) 50%를 주력으로 삼아 도매시장을 물량 안전망(30%)으로 격하하고 로컬푸드(20%)를 지역 접점으로 유지하는 3경로 포트폴리오로 전환하는 것이 수익 극대화와 리스크 분산을 동시에 달성하는 현실적 최적안."
+        },
+
+        "opus-4-7": {
+          "model_id": "claude-opus-4-7",
+          "generated_at": "2026-04-23T20:35:00+09:00",
+          "token_usage": null,
+          "latency_ms": 154113,
+          "interpretation_note": "✅ Opus는 C5를 v4 원문·HTML §3 공식 정의대로 '진입가능성(동적)' 해석. weights_label 정확.",
+          "step1_realism_check": {
+            "passed": true,
+            "warnings": [
+              "저장성 낮음(딸기 최대 3~5일) — q1 응답 중 '저장 후 분할 출하'는 제한적, '거래처 다양화' 중심 해석 권장",
+              "상품률 60%는 설향 시설재배 기준 다소 보수적이나 비현실적 수준 아님"
+            ]
+          },
+          "step2_farm_summary": "충남 논산 시설딸기 설향 3,000㎡, 연 9,800kg, 11~4월 6개월 연속 출하, 저장성 낮음. 45세 농가주+가족 2인 포장 가능. 스마트스토어 6개월·클레임 직접응대·시황 자가 판단 등 실전 판매역량 높음. 현재 도매 80% + 로컬푸드 20% 구조로 판매역량 대비 저활용 상태.",
+          "step3_qualitative": {
+            "marketing_overall": "높음",
+            "online_capability": "보통",
+            "challenge_tendency": "높음",
+            "stability_preference": "보통",
+            "negotiation_style": "보통"
+          },
+          "type_classification": {
+            "type": "A",
+            "signals": {"profit": 5, "stable": 2, "challenge": 4, "org": 1},
+            "reasoning": "신선도 강점 + 도전성향 높음 + 소농 규모 + 판매역량 높음 → 수익극대화 A형. 개별 판매 선호로 조직출하 신호(org) 낮음."
+          },
+          "step4_route_evaluation": {
+            "weights_used": [0.35, 0.15, 0.10, 0.15, 0.25],
+            "weights_label_by_model": ["C1_수취가격", "C2_물량처리", "C3_노동부담(역)", "C4_가격안정성", "C5_진입가능성(동적)"],
+            "c5_adjustments": {
+              "도매시장": "시황 자가 판단 +5, 신선도 단가 미반영 -10",
+              "생산자단체(조직출하)": "자율출하 선호 -15, 소농 협상력 -5",
+              "직거래(온라인)": "스마트스토어 경험 +15, 클레임 직접응대 +10, 가족 포장 +5",
+              "직거래(로컬푸드)": "논산 접근성 +10, 현재 실적 +10, 대면 부담 없음 +5",
+              "산지유통인": "농가 자립도 높음 -20, 단가 극대화 목표 반대 -15"
+            },
+            "routes": {
+              "도매시장": {
+                "verdict": "진입 가능",
+                "score": 62,
+                "criteria_scores": {"C1": 55, "C2": 80, "C3": 90, "C4": 65, "C5": 55},
+                "reasoning": "물량 처리·안정성 강점(C2·C3 고득점), A형 C1 0.35 가중치에서 신선도 강점 단가 반영 불가로 감점. 완충 역할로 유지."
+              },
+              "생산자단체(조직출하)": {
+                "verdict": "조건부 가능",
+                "score": 48,
+                "criteria_scores": {"C1": 45, "C2": 70, "C3": 65, "C4": 60, "C5": 35},
+                "reasoning": "규격화·안정성 가점 있으나 자율출하·시황 자가판단 성향 강해 C5 큰 폭 감점."
+              },
+              "직거래(온라인)": {
+                "verdict": "진입 가능",
+                "score": 78,
+                "criteria_scores": {"C1": 85, "C2": 60, "C3": 60, "C4": 65, "C5": 80},
+                "reasoning": "신선도·단가 최대 수혜(C1 85), 스마트스토어 6개월 경험+클레임 응대로 C5 80. 운영 지속성 미검증으로 C2 보수. A형 최적 주력."
+              },
+              "직거래(로컬푸드)": {
+                "verdict": "진입 가능",
+                "score": 72,
+                "criteria_scores": {"C1": 65, "C2": 75, "C3": 45, "C4": 75, "C5": 80},
+                "reasoning": "논산 접근성·현재 20% 실적·소량 다빈도 적합성으로 C5 80. 매장 수수료로 C1 65."
+              },
+              "산지유통인": {
+                "verdict": "비추천",
+                "score": 35,
+                "criteria_scores": {"C1": 30, "C2": 55, "C3": 60, "C4": 60, "C5": 25},
+                "reasoning": "농가 자립도 높아 중개 필요성 없음. A형 단가 극대화 목표와 정반대. 6개월 연속 출하로 단기 집중 조건도 약함."
+              }
+            }
+          },
+          "step5_portfolio": {
+            "immediate": [
+              {"route": "직거래(온라인)", "ratio": 40, "role": "주력", "reason": "A형 C1 0.35 가중치 최대 수혜, 스마트스토어 6개월 경험+가족 포장 역량 기반. 50%+ 즉시 할당은 운영 지속성 미검증으로 위험하여 40%로 보수 설정."},
+              {"route": "도매시장", "ratio": 40, "role": "완충", "reason": "9,800kg 중 피크(12~2월) 물량 일괄 처리·현금흐름 안정. 현재 80%에서 40%로 축소해 A형 방향성 확보."},
+              {"route": "직거래(로컬푸드)", "ratio": 20, "role": "보완", "reason": "논산 로컬푸드 접근성·현재 20% 실적 기반 유지. 보완 경로 원칙으로 주력 승격 불가."}
+            ],
+            "expansion": "6~12개월 후 온라인 운영 12개월 실적(리오더율, 클레임율<3%, 월 주문 안정화) 검증 시 온라인 50~55%, 도매 25~30%, 로컬푸드 20% 유지로 재조정."
+          },
+          "step6_strategic_reasoning": "A형 수익극대화 가중치(C1 0.35, C5 0.25)에서 시설딸기 설향 신선도 강점은 온라인 채널에서 가장 잘 발현. 농가의 스마트스토어 6개월 운영+클레임 직접응대는 진입장벽 통과 상태이므로 온라인 주력 선택. 단, 운영 지속성 미검증으로 50%+ 즉시 할당 보류하고 40%로 시작.",
+          "step7_competitive_tasks": {
+            "생산·수확": "설향 당도·경도 관리(브릭스 10~12 유지), 수확 직후 예냉(4°C, 1시간) 도입으로 온라인 배송 품질 확보",
+            "선별·규격화": "상품률 60%→65% 5%p 개선, 온라인용 소포장 3규격(250g/500g/1kg) 표준화",
+            "포장·소포장": "예냉팩+PET 클램쉘+완충재 표준 매뉴얼, 가족 2인 시간당 포장량 측정·피크기 대응 계획",
+            "판매·마케팅": "스마트스토어 리뷰 100건 전까지 키워드 광고 제한, 카카오채널 단골 관리(리오더율 30% 목표), 12~1월 라이브커머스 1회 테스트",
+            "조직화·계약": "생산자단체 가입 유보. 도매 출하처 1곳 고정 거래(공판장/법인)로 단가 완충",
+            "비상품 처리": "하품 10%(980kg) 잼·청·냉동 가공 위탁 또는 로컬푸드 B2B(카페·베이커리) 저가 처리 루트 확보"
+          },
+          "step8_current_comparison": {
+            "present_or_not": true,
+            "current_structure": "도매시장 80% + 로컬푸드 20%",
+            "recommended_structure": "직거래(온라인) 40% + 도매시장 40% + 로컬푸드 20%",
+            "advantages": "도매 80%→40%로 가격변동 리스크 분산. 온라인 40% 편입으로 A형 목표 방향성 확보. 현재 로컬푸드 20% 실적 유지로 기존 자산 보존.",
+            "additional_burden": "온라인 40%(연 약 3,920kg 환산) 주문 처리·포장·클레임 응대 시간 증가. 가족 2인 피크기(12~2월) 주당 포장 시간 +10~15h 방향성 추정. 택배 신선도·파손 클레임 첫 본격 대응.",
+            "directional": "소득: 단가 상승 방향(온라인 > 도매 통상), 포장·택배비 공제 후 실질 증가폭은 운영 효율 종속. 노동력: 증가 방향. 비용: 포장재·택배비·수수료 증가, 6개월 실측 후 재평가 필요."
+          },
+          "step9_one_line_conclusion": "도매 80% 편중 구조를 온라인 40%·도매 40%·로컬푸드 20%로 재편해 설향 신선도 강점과 가족 포장 역량을 수익으로 전환하되, 온라인 운영 6개월 실적을 12개월로 검증한 뒤 온라인을 50%+로 확대하는 것이 이 농가의 최적 전략."
+        },
+
+        "codex-gpt-5-3-codex": {
+          "model_id": "codex-gpt-5-3-codex",
+          "generated_at": "2026-04-23T21:45:00+09:00",
+          "token_usage": null,
+          "latency_ms": 282410,
+          "interpretation_note": "✅ Codex는 C5를 v4 원문·HTML §3 공식 정의대로 '진입가능성(동적)' 해석. Opus와 독립 합의 → Sonnet 오류 확정.",
+          "weights_label_by_model": ["C1_수취가격수준", "C2_물량처리용이성", "C3_노동부담(역방향)", "C4_가격안정성", "C5_진입가능성(동적)"],
+          "step1_realism_check": {
+            "passed": true,
+            "warnings": [],
+            "missing_info": ["온라인 주간 처리 가능 물량", "로컬푸드 실제 납품처 수", "반복구매 고객 기반"]
+          },
+          "step2_farm_summary": "논산 설향 시설딸기 3000㎡, 연 9.8톤, 11월~4월 출하, 저장성 낮음. 가족노동 2명, 포장 가능, 직접판매 지속 경험과 스마트스토어 6개월 경험, 클레임 직접 대응 경험이 있는 농가.",
+          "step3_qualitative": {
+            "marketing_overall": "높음",
+            "online_capability": "높음",
+            "challenge_tendency": "높음",
+            "stability_preference": "낮음~보통",
+            "negotiation_style": "보통 이상"
+          },
+          "type_classification": {
+            "type": "A",
+            "type_name": "수익극대화형",
+            "signals": {"profit": 4, "stable": 1, "challenge": 4, "org": 0},
+            "reasoning": "가격이 낮은 현재 구조에 불만이 있고, 거래처 다양화·온라인 시도·직접 클레임 대응·시황 직접 판단 응답이 profit+challenge 축으로 강하게 모였다."
+          },
+          "step4_route_evaluation": {
+            "weights_used": [0.35, 0.15, 0.10, 0.15, 0.25],
+            "weights_type_basis": "A형",
+            "c5_adjustments": {
+              "도매시장": "기본값 70, 물량처리 안전판 중시",
+              "생산자단체(조직출하)": "조직 참여 의사·공동선별 체계 정보 부족 -35",
+              "직거래(온라인)": "스마트스토어+클레임+시간투입+포장 가점 85",
+              "직거래(로컬푸드)": "지역 접근성·경험 가점 82",
+              "산지유통인": "즉시처리 편의 72, 단가 열세로 주력 아님"
+            },
+            "routes": {
+              "도매시장": {
+                "verdict": "진입 가능",
+                "score": 72,
+                "criteria_scores": {"C1": 55, "C2": 88, "C3": 82, "C4": 75, "C5": 70},
+                "reasoning": "저장성 낮고 물량이 적지 않아 기본 물량처리 안전판으로 적합. 다만 수취가격 상방은 낮음."
+              },
+              "생산자단체(조직출하)": {
+                "verdict": "조건부 가능",
+                "score": 50,
+                "criteria_scores": {"C1": 50, "C2": 72, "C3": 68, "C4": 78, "C5": 35},
+                "reasoning": "안정성은 있으나 조직 참여 의사·공동선별 체계 정보가 부족하고, 본 농가의 가격지향과도 다소 거리 있음."
+              },
+              "직거래(온라인)": {
+                "verdict": "진입 가능",
+                "score": 84,
+                "criteria_scores": {"C1": 86, "C2": 58, "C3": 55, "C4": 62, "C5": 85},
+                "reasoning": "스마트스토어 경험, 클레임 직접 대응, 시간투입 충분, 포장 가능으로 진입장벽을 이미 상당 부분 넘은 상태."
+              },
+              "직거래(로컬푸드)": {
+                "verdict": "진입 가능",
+                "score": 71,
+                "criteria_scores": {"C1": 68, "C2": 72, "C3": 48, "C4": 74, "C5": 82},
+                "reasoning": "지역 접근성과 기존 운영 경험이 있어 보완 경로로 적합. 다만 대량 처리 주력화에는 한계."
+              },
+              "산지유통인": {
+                "verdict": "조건부 가능",
+                "score": 49,
+                "criteria_scores": {"C1": 35, "C2": 78, "C3": 84, "C4": 60, "C5": 72},
+                "reasoning": "즉시처리 편의는 좋지만, 이미 도매·직거래 역량이 있는 농가에선 단가 열세가 커 우선순위가 낮음."
+              }
+            }
+          },
+          "step5_portfolio": {
+            "immediate": [
+              {"route": "직거래(온라인)", "ratio": 45, "role": "주력", "reason": "A형 C1+C5 동시 유리. 수취가격 상방과 실제 진입가능성 모두 확보"},
+              {"route": "도매시장", "ratio": 35, "role": "보완", "reason": "저장성 낮고 연 물량 적지 않으므로 피크 출하 리스크 흡수용 안전판"},
+              {"route": "직거래(로컬푸드)", "ratio": 20, "role": "완충", "reason": "접근성·경험 기반, 물량 한계로 주력 승격 불가"}
+            ],
+            "expansion": "준비 후 확대안: 직거래(온라인) 50% / 도매 30% / 로컬 20%. 전제: 온라인 재구매 관리, 택배 클레임 SOP, 주간 포장 처리능력 안정화"
+          },
+          "step6_strategic_reasoning": "A형에서는 C1과 C5 비중이 크다. 본 농가는 온라인에서 수취가격 상방(C1)과 실제 진입 가능성(C5)이 동시에 높다. 다만 저장성 낮고 물량이 적지 않아 도매시장 비중을 남겨 피크 출하 리스크를 흡수해야 한다.",
+          "step7_competitive_tasks": {
+            "생산·수확": "온라인용/도매용 수확일 분리",
+            "선별·규격화": "상품-중품-하품 3단 선별 기준 고정",
+            "포장·소포장": "온라인 전용 박스·완충재·당일발송 표준화",
+            "판매·마케팅": "스마트스토어 재정비, 후기/재구매 운영",
+            "거래·조직관리": "도매 피크물량 안전판 유지, 로컬 납품요일 고정",
+            "비상대응": "클레임 SOP와 과잉출하 시 도매 전환 기준 마련"
+          },
+          "step8_current_comparison": {
+            "present_or_not": true,
+            "current_structure": "도매시장 80%, 직거래(로컬푸드) 20%",
+            "recommended_structure": "직거래(온라인) 45%, 도매시장 35%, 직거래(로컬푸드) 20%",
+            "advantages": "도매 의존도 축소, 수취가격 개선 여지 확대, 기존 로컬 경로 유지",
+            "additional_burden": "포장·택배·고객응대 증가",
+            "directional": "소득 방향 상향 가능, 가격 변동성과 운영 복잡성은 다소 증가"
+          },
+          "step9_one_line_conclusion": "직거래(온라인)를 45% 주력으로 키우고, 도매시장을 35% 안전판으로 남기며, 로컬푸드 20%로 지역 분산을 유지하는 것이 가장 현실적이다.",
+          "self_meta_cognition": [
+            "온라인 6개월 경험의 실제 주문 지속성·재구매율 정보가 없어 온라인 50% 이상 즉시 확대는 보수적으로 판단",
+            "로컬푸드의 실제 매장 수·납품 슬롯·수수료 조건이 없어서 로컬푸드 점수는 다소 보수적으로 판정"
+          ]
+        }
+      }
+    }
+  ]
+}
