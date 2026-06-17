@@ -7,7 +7,7 @@
 
   const PROVIDERS = ['anthropic', 'openai', 'gemini'];
   const DEFAULT_MODELS = { anthropic: 'claude-sonnet-4-6', openai: 'gpt-4o', gemini: 'gemini-2.0-flash' };
-  const LABELS = { anthropic: 'Claude', openai: 'GPT', gemini: 'Gemini' };
+  const LABELS = { anthropic: 'Claude', openai: 'ChatGPT', gemini: 'Gemini' };
   const AI_KEYS = { anthropic: '', openai: '', gemini: '' };
   const AI_MODELS = Object.assign({}, DEFAULT_MODELS);
 
@@ -225,38 +225,63 @@
     if (!panel) return;
     if (!REAL_DATA) { panel.innerHTML = '<div class="empty-state"><div>실측 데이터를 불러오는 중입니다. 잠시 후 다시 눌러주세요.</div></div>'; loadRealData(); return; }
     const d = REAL_DATA, ir = d.income_rate;
+    const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#a855f7'];
+    // 추천 포트폴리오 도넛
+    const port = d.recommended_portfolio || [];
+    let acc = 0;
+    const slices = port.map((p, i) => {
+      const st = acc, en = acc + p.ratio; acc = en;
+      const a1 = (st / 100) * 2 * Math.PI - Math.PI / 2, a2 = (en / 100) * 2 * Math.PI - Math.PI / 2;
+      const lg = (en - st) > 50 ? 1 : 0;
+      const x1 = 80 + 62 * Math.cos(a1), y1 = 80 + 62 * Math.sin(a1), x2 = 80 + 62 * Math.cos(a2), y2 = 80 + 62 * Math.sin(a2);
+      return '<path d="M 80 80 L ' + x1 + ' ' + y1 + ' A 62 62 0 ' + lg + ' 1 ' + x2 + ' ' + y2 + ' Z" fill="' + colors[i % 5] + '" opacity="0.85"/>';
+    }).join('');
+    const legend = port.map((p, i) =>
+      '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:9px;font-size:12.5px">' +
+      '<span style="width:11px;height:11px;border-radius:3px;background:' + colors[i % 5] + ';margin-top:3px;flex-shrink:0"></span>' +
+      '<span><b>' + esc(p.route) + ' ' + p.ratio + '%</b> <span style="color:var(--text-secondary)">(' + esc(p.role) + ')</span><br>' +
+      '<span style="color:var(--text-secondary);font-size:11.5px;line-height:1.5">' + esc(p.reason) + '</span></span></div>'
+    ).join('');
+    // 경로 점수 막대
+    const rs = d.route_scores || [];
+    const scoreBars = rs.map((r) =>
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12.5px">' +
+      '<span style="width:120px">' + esc(r.route) + '</span>' +
+      '<span style="flex:1;background:rgba(34,197,94,0.12);border-radius:4px;height:20px;position:relative;overflow:hidden">' +
+      '<span style="position:absolute;left:0;top:0;height:100%;width:' + r.score + '%;background:#22c55e"></span>' +
+      '<span style="position:absolute;left:8px;top:3px;font-size:11px;font-weight:700;color:#0a0f1e">' + r.score + '점</span></span>' +
+      '<span style="width:140px;text-align:right;color:var(--text-secondary)">' + r.price.toLocaleString() + '원·소득' + r.income_rate + '%·' + r.farms + '호</span></div>'
+    ).join('');
+    // 실측 분포 (접기)
     const maxRatio = Math.max.apply(null, d.routes_distribution.map((x) => x.avg_ratio));
     const distRows = d.routes_distribution.map((x) =>
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12.5px">' +
-      '<span style="width:130px">' + esc(x.route) + '</span>' +
-      '<span style="flex:1;background:rgba(34,197,94,0.12);border-radius:4px;height:18px;position:relative;overflow:hidden">' +
-      '<span style="position:absolute;left:0;top:0;height:100%;width:' + (x.avg_ratio / maxRatio * 100) + '%;background:#22c55e"></span></span>' +
-      '<span style="width:118px;text-align:right;color:var(--text-secondary)">' + x.avg_ratio + '% · ' + x.farms + '호</span></div>'
-    ).join('');
-    const byRows = d.income_by_main_route.map((x) =>
-      '<tr><td style="padding:4px 0">' + esc(x.route) + '</td><td style="text-align:right">' + x.farms + '</td>' +
-      '<td style="text-align:right;font-weight:600;color:#22c55e">' + x.income_rate_mean + '%</td>' +
-      '<td style="text-align:right">' + (x.price_mean ? x.price_mean.toLocaleString() + '원' : '-') + '</td></tr>'
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12px"><span style="width:130px">' + esc(x.route) + '</span>' +
+      '<span style="flex:1;background:rgba(59,130,246,0.12);border-radius:4px;height:16px;position:relative;overflow:hidden"><span style="position:absolute;left:0;top:0;height:100%;width:' + (x.avg_ratio / maxRatio * 100) + '%;background:#3b82f6"></span></span>' +
+      '<span style="width:110px;text-align:right;color:var(--text-secondary)">' + x.avg_ratio + '% · ' + x.farms + '호</span></div>'
     ).join('');
     const strat = d.strategy.map((s) => '<li style="margin-bottom:6px"><b>' + esc(s.title) + '</b> — ' + esc(s.point) + '</li>').join('');
     panel.innerHTML =
       '<div class="chart-section">' +
-      '<h3>📊 시설방울토마토 실측 컨설팅 <span style="font-size:12px;font-weight:400;color:#22c55e">실제 데이터 기반</span></h3>' +
-      '<div style="font-size:11.5px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5">' + esc(d.source) + '</div>' +
-      '<div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:16px;font-size:12.5px;line-height:1.7">' +
-      '<b>소득률</b> 평균 ' + ir.mean + '% · 중앙 ' + ir.median + '% (범위 ' + ir.min + '~' + ir.max + '%) &nbsp;|&nbsp; 상품화율 ' + d.quality_rate_mean + '% &nbsp;|&nbsp; 표본 ' + d.n_farms + '농가</div>' +
-      '<div style="font-weight:600;margin-bottom:8px">① 실제 판매경로 분포</div>' + distRows +
-      '<div style="font-weight:600;margin:18px 0 8px">② 주력 경로별 소득률·수취단가 (높은 순)</div>' +
-      '<table style="width:100%;font-size:12.5px;border-collapse:collapse"><thead><tr style="color:var(--text-secondary);border-bottom:1px solid var(--border)"><th style="text-align:left;padding-bottom:6px">주력경로</th><th style="text-align:right">농가</th><th style="text-align:right">평균소득률</th><th style="text-align:right">수취단가</th></tr></thead><tbody>' + byRows + '</tbody></table>' +
-      '<div style="font-weight:600;margin:18px 0 8px">③ 출하전략 (농진청 거래특성·출하전략 자료)</div><ul style="font-size:12.5px;color:var(--text-secondary);line-height:1.65;padding-left:18px;margin:0">' + strat + '</ul>' +
-      '<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:14px;margin-top:16px;font-size:13px;line-height:1.85"><b>💡 종합 컨설팅</b><br>' + esc(d.consulting) + '</div>' +
-      '<div style="font-size:11px;color:var(--text-secondary);margin-top:10px;line-height:1.5">⚠️ ' + esc(d.caveat) + '</div>' +
+      '<h3>시설방울토마토 판매경로 컨설팅 <span style="font-size:11.5px;font-weight:400;color:#22c55e">실측 ' + d.n_farms + '농가 기반</span></h3>' +
+      '<div style="font-size:11px;color:var(--text-secondary);margin-bottom:16px;line-height:1.5">' + esc(d.source) + '</div>' +
+      '<div style="font-weight:600;margin-bottom:10px">💡 추천 판매경로 포트폴리오</div>' +
+      '<div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-bottom:20px">' +
+      '<svg width="160" height="160" viewBox="0 0 160 160" style="flex-shrink:0">' + slices + '<circle cx="80" cy="80" r="34" fill="var(--bg-primary)"/></svg>' +
+      '<div style="flex:1;min-width:250px">' + legend + '</div></div>' +
+      '<div style="font-weight:600;margin-bottom:8px">📊 판매경로 점수 <span style="font-size:11px;font-weight:400;color:var(--text-secondary)">(실측 수취단가 기준 상대점수)</span></div>' + scoreBars +
+      '<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:14px;margin:18px 0 14px;font-size:13px;line-height:1.85"><b>📝 종합 컨설팅</b><br>' + esc(d.consulting) + '</div>' +
+      '<div style="font-weight:600;margin:0 0 8px">출하전략 (농진청 거래특성·출하전략 자료)</div><ul style="font-size:12.5px;color:var(--text-secondary);line-height:1.6;padding-left:18px;margin:0 0 14px">' + strat + '</ul>' +
+      '<div style="font-size:11px;color:var(--text-secondary);margin-bottom:12px;line-height:1.5">⚠️ ' + esc(d.portfolio_caveat || d.caveat) + '</div>' +
+      '<details style="border-top:1px solid var(--border);padding-top:10px"><summary style="cursor:pointer;font-size:12.5px;color:var(--text-secondary)">실측 데이터 자세히 — 소득률·실제 경로 분포</summary>' +
+      '<div style="margin-top:10px;font-size:12px;color:var(--text-secondary)">소득률 평균 ' + ir.mean + '% · 중앙 ' + ir.median + '% (범위 ' + ir.min + '~' + ir.max + '%) · 상품화율 ' + d.quality_rate_mean + '% · 표본 ' + d.n_farms + '농가</div>' +
+      '<div style="margin-top:12px;font-weight:600;font-size:12.5px;color:var(--text-primary)">실제 판매경로 분포 (132농가가 실제 쓰는 비율)</div><div style="margin-top:6px">' + distRows + '</div></details>' +
       '</div>';
   }
 
   // 전역 노출 (index.html에서 호출)
   window.loadRealData = loadRealData;
   window.renderRealData = renderRealData;
+  window.hasRealData = function (crop) { return !!(REAL_DATA && crop && (crop === REAL_DATA.crop || crop.indexOf('방울토마토') >= 0)); };
   window.loadApiKeys = loadApiKeys;
   window.saveApiKeys = saveApiKeys;
   window.clearApiKeys = clearApiKeys;

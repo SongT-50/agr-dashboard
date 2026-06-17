@@ -1746,6 +1746,8 @@ function runPortfolio() {
 
   const c = caseId ? RDA_CASES.cases.find(x => x.id === caseId) : null;
   if (!c) {
+    const cropV = document.getElementById('f-crop') ? document.getElementById('f-crop').value : '';
+    if (window.hasRealData && window.hasRealData(cropV)) { window.renderRealData(); return; }
     if (window.hasAnyApiKey && window.hasAnyApiKey()) window.runRealtimeDiagnosis();
     else renderDirectInputGuide();
     return;
@@ -1806,7 +1808,7 @@ function renderDirectInputGuide() {
       <div style="margin-bottom:18px">${simHtml}</div>
       <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:15px;font-size:13px;line-height:1.75;color:var(--text-secondary)">
         <strong style="color:var(--text-primary)">ℹ️ 이 농가 맞춤 5경로 점수·포트폴리오는?</strong><br>
-        각 경로(도매·온라인·로컬푸드 등)에 몇 점을 줄지는 농가 상황을 보고 <strong>AI가 판단</strong>해야 정확합니다. 규칙만으로 점수를 매기면 근거 없는 숫자가 되기 때문에, <strong>입력 농가 맞춤 진단은 실시간 AI 교차검증(Claude·Opus·Codex 3모델) 단계에서 제공 예정</strong>입니다. 지금은 위 사례들로 방향을 참고해 주세요.
+        각 경로(도매·온라인·로컬푸드 등)에 몇 점을 줄지는 농가 상황을 보고 <strong>AI가 판단</strong>해야 정확합니다. 규칙만으로 점수를 매기면 근거 없는 숫자가 되기 때문에, <strong>입력 농가 맞춤 진단은 실시간 AI 교차검증(Claude·ChatGPT·Gemini 3모델) 단계에서 제공 예정</strong>입니다. 위 ⚙️ 설정에 API 키를 넣으면 즉석 교차검증이 작동하고, 그 전에는 위 사례들로 방향을 참고해 주세요.
       </div>
     </div>`;
 }
