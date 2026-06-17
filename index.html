@@ -1717,8 +1717,7 @@ function runPortfolio() {
 
   const c = caseId ? RDA_CASES.cases.find(x => x.id === caseId) : null;
   if (!c) {
-    panel.innerHTML = `<div class="empty-state"><div class="icon">&#x1F50D;</div>
-      <div>케이스를 먼저 선택해주세요.<br>직접 입력 분석은 v0.4에서 지원 예정 (실시간 API 호출).</div></div>`;
+    renderDirectInputGuide();
     return;
   }
 
@@ -1730,6 +1729,64 @@ function runPortfolio() {
   }
 
   renderPortfolioResult(c, result);
+}
+
+// 직접 입력 시: 저장된 정보만 표시 (AI 호출 0 = 비용 0). 맞춤 점수는 실시간 AI 단계
+function renderDirectInputGuide() {
+  const panel = document.getElementById('port-result');
+  const cropName = document.getElementById('f-crop').value;
+  if (!cropName) {
+    panel.innerHTML = `<div class="empty-state"><div class="icon">&#x1F50D;</div>
+      <div>품목을 선택한 뒤 다시 실행하거나,<br>좌측 위 "사례 선택"에서 가상 농가를 골라주세요.</div></div>`;
+    return;
+  }
+  const ref = CROPS.find(c => c.name === cropName);
+  const cat = ref ? ref.category : null;
+  let similar = RDA_CASES.cases.filter(c => c.input?.basic?.crop === cropName);
+  let simKind = '동일 품목';
+  if (similar.length === 0 && cat) {
+    similar = RDA_CASES.cases.filter(c => {
+      const cc = CROPS.find(x => x.name === c.input?.basic?.crop);
+      return cc && cc.category === cat;
+    });
+    simKind = '같은 분류(' + cat + ')';
+  }
+  const q = ref && ref.quality_rate != null ? `<span><i>상품화율</i>${ref.quality_rate}%</span>` : '';
+  const refCard = ref ? `
+    <div class="diag-ref-head">📊 ${ref.name} 농진청 전국 평균 (2024, 10a=300평 기준)</div>
+    <div class="diag-ref-grid">
+      <span><i>총수입</i>${fmt(ref.total_revenue)}원</span>
+      <span><i>경영비</i>${fmt(ref.operating_cost)}원</span>
+      <span><i>소득</i>${fmt(ref.income)}원</span>
+      <span><i>소득률</i>${ref.income_rate}%</span>
+      <span><i>생산량</i>${fmt(ref.production_kg)}kg</span>
+      <span><i>단가</i>${fmt(ref.unit_price)}원/kg</span>
+      ${q}
+    </div>` : '<div style="color:var(--text-secondary)">이 품목의 농진청 평균 데이터가 아직 없습니다.</div>';
+  const simHtml = similar.length
+    ? similar.map(c => `<button class="btn-diagnose" style="margin:4px 8px 4px 0;display:inline-block;width:auto;padding:9px 16px" onclick="selectAndRunCase('${c.id}')">${c.label} ›</button>`).join('')
+    : '<div style="color:var(--text-secondary);font-size:13px">저장된 10개 사례 중 비슷한 품목이 없어요. 사례 목록에서 가까운 유형을 직접 골라보세요.</div>';
+  panel.innerHTML = `
+    <div class="chart-section">
+      <h3>직접 입력 — 참고 정보 (저장 데이터, 비용 0)</h3>
+      <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:18px">
+        ${refCard}
+      </div>
+      <div style="margin-bottom:10px;font-weight:600">🔗 비슷한 사례로 진단 보기 (${simKind})</div>
+      <div style="margin-bottom:18px">${simHtml}</div>
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:15px;font-size:13px;line-height:1.75;color:var(--text-secondary)">
+        <strong style="color:var(--text-primary)">ℹ️ 이 농가 맞춤 5경로 점수·포트폴리오는?</strong><br>
+        각 경로(도매·온라인·로컬푸드 등)에 몇 점을 줄지는 농가 상황을 보고 <strong>AI가 판단</strong>해야 정확합니다. 규칙만으로 점수를 매기면 근거 없는 숫자가 되기 때문에, <strong>입력 농가 맞춤 진단은 실시간 AI 교차검증(Claude·Opus·Codex 3모델) 단계에서 제공 예정</strong>입니다. 지금은 위 사례들로 방향을 참고해 주세요.
+      </div>
+    </div>`;
+}
+
+function selectAndRunCase(id) {
+  const sel = document.getElementById('port-case-select');
+  const c = RDA_CASES.cases.find(x => x.id === id);
+  if (sel) sel.value = id;
+  if (c) fillFormFromCase(c.input || {});
+  runPortfolio();
 }
 
 function renderPortfolioResult(caseObj, result) {
