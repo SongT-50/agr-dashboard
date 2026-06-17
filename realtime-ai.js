@@ -111,7 +111,7 @@
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
-      body: JSON.stringify({ model: model, max_tokens: 2500, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: model, max_tokens: 8192, messages: [{ role: 'user', content: prompt }] })
     });
     if (!r.ok) throw new Error('Anthropic ' + r.status + ': ' + (await r.text()).slice(0, 160));
     const d = await r.json();

@@ -1,0 +1,8 @@
+# 임시 키/시크릿 파일 — 실수 커밋 방지 (API 키는 코드가 아니라 브라우저 localStorage에만 보관)
+_*.txt
+*.local
+*.local.*
+.env
+.env.*
+*.key
+secret*
