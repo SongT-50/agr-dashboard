@@ -686,7 +686,24 @@ body {
 .footer-credit { text-align:center; font-size:12px; color:var(--text-secondary); }
 @media (max-width:640px){ .footer-flow{flex-direction:column;} .ff-arrow{transform:rotate(90deg);} }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+/* 실시간 AI 진단 설정 패널 */
+.ai-settings { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 18px; }
+.ai-settings summary { padding: 12px 16px; cursor: pointer; font-size: 13.5px; font-weight: 600; list-style: none; }
+.ai-settings summary::-webkit-details-marker { display: none; }
+.ai-settings summary::before { content: '▸ '; color: var(--text-secondary); }
+.ai-settings[open] summary::before { content: '▾ '; }
+.ai-settings-body { padding: 0 16px 16px; }
+.ai-sec-note { font-size: 12px; color: var(--text-secondary); background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; line-height: 1.65; }
+.ai-key-row { display: grid; grid-template-columns: 130px 1fr 150px; gap: 8px; align-items: center; margin-bottom: 8px; }
+.ai-key-row label { font-size: 12.5px; color: var(--text-secondary); }
+.ai-key-row input { background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary); padding: 8px 10px; border-radius: 6px; font-size: 12px; font-family: 'JetBrains Mono', monospace; width: 100%; box-sizing: border-box; }
+.ai-actions { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+.ai-actions button { background: #22c55e; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; }
+.ai-actions button.ghost { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+#ai-key-status { font-size: 12px; color: var(--text-secondary); }
+@media (max-width: 768px) { .ai-key-row { grid-template-columns: 1fr; gap: 4px; } }
 </style>
+<script src="realtime-ai.js"></script>
 </head>
 <body>
 <div class="container">
@@ -817,6 +834,17 @@ body {
         </div>
       </div>
     </div>
+
+    <details class="ai-settings">
+      <summary>⚙️ 실시간 AI 진단 설정 (API 키) — 직접 입력 농가를 즉석 교차검증</summary>
+      <div class="ai-settings-body">
+        <div class="ai-sec-note">🔒 <b>API 키는 이 브라우저에만 저장</b>됩니다(localStorage). 우리 서버·GitHub로 전송되지 않고, 페이지 코드에도 저장되지 않습니다. <b>공용 PC에서는 입력하지 마세요.</b> 실시간 호출 비용은 입력하신 키로 과금됩니다(본인 부담). 키를 저장하면 좌측에 직접 입력 후 "포트폴리오 진단 실행" 시 실시간 교차검증이 작동합니다.</div>
+        <div class="ai-key-row"><label>Anthropic (Claude)</label><input type="password" id="ak-anthropic" data-ph="sk-ant-..." placeholder="sk-ant-..."><input type="text" id="am-anthropic" value="claude-sonnet-4-6" title="모델 ID"></div>
+        <div class="ai-key-row"><label>OpenAI (GPT)</label><input type="password" id="ak-openai" data-ph="sk-..." placeholder="sk-..."><input type="text" id="am-openai" value="gpt-4o" title="모델 ID"></div>
+        <div class="ai-key-row"><label>Google (Gemini)</label><input type="password" id="ak-gemini" data-ph="AIza..." placeholder="AIza..."><input type="text" id="am-gemini" value="gemini-2.0-flash" title="모델 ID"></div>
+        <div class="ai-actions"><button onclick="saveApiKeys()">저장</button><button class="ghost" onclick="clearApiKeys()">삭제</button><span id="ai-key-status"></span></div>
+      </div>
+    </details>
 
     <div class="portfolio-layout">
       <!-- 왼쪽: 입력 폼 (3 그룹 + 행동 5문항) -->
@@ -1717,7 +1745,8 @@ function runPortfolio() {
 
   const c = caseId ? RDA_CASES.cases.find(x => x.id === caseId) : null;
   if (!c) {
-    renderDirectInputGuide();
+    if (window.hasAnyApiKey && window.hasAnyApiKey()) window.runRealtimeDiagnosis();
+    else renderDirectInputGuide();
     return;
   }
 
@@ -2071,6 +2100,7 @@ async function init() {
   loadRdaCases();
   loadPubdata();
   initDebugTab();
+  if (window.loadApiKeys) window.loadApiKeys();
 }
 init();
 </script>
