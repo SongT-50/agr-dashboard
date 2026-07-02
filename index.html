@@ -1242,7 +1242,7 @@ function renderCompareColumns(caseId) {
     const el = document.getElementById(m.id);
     if (!r) { el.innerHTML = `<h4 class="${m.cls}">${m.name} <span class="model-id">${m.modelId}</span></h4><div style="color:var(--text-secondary);font-size:12px">결과 없음</div>`; return; }
     const type = r.type_classification?.type || '-';
-    const portfolio = r.step5_portfolio?.immediate || [];
+    const portfolio = r.step5_portfolio?.immediate || r.step5_portfolio?.phase1_immediate || [];
     const routes = r.step4_route_evaluation?.routes || {};
     const routeKv = Object.entries(routes).map(([k,v]) => `<div class="kv"><span class="k">${k}</span><span class="v">${v.score}점 · ${v.verdict}</span></div>`).join('');
     const portKv = portfolio.map(p => `<div class="kv"><span class="k">${p.role} · ${p.route}</span><span class="v">${p.ratio}%</span></div>`).join('');
@@ -1841,7 +1841,9 @@ function renderPortfolioResult(caseObj, result) {
   }).join('');
 
   // 포트폴리오 도넛 (간단한 SVG)
-  const portfolio = result.step5_portfolio?.immediate || [];
+  // newbie 케이스는 키 이름이 다름: phase1_immediate / phase2_roadmap (일반은 immediate / expansion)
+  const sp = result.step5_portfolio || {};
+  const portfolio = sp.immediate || sp.phase1_immediate || [];
   const colors = ['#22c55e','#3b82f6','#f59e0b','#ec4899','#a855f7'];
   let acc = 0;
   const donutSlices = portfolio.map((p, i) => {
@@ -1889,7 +1891,25 @@ function renderPortfolioResult(caseObj, result) {
           </div>`).join('')}
         </div>
       </div>
-      ${result.step5_portfolio?.expansion ? `<div style="margin-top:14px;padding:14px;background:var(--bg-tertiary);border-left:3px solid var(--accent-amber);border-radius:6px;font-size:13px;color:var(--text-secondary);line-height:1.7"><strong style="color:var(--accent-amber)">준비 후 확대안:</strong> ${result.step5_portfolio.expansion}</div>` : ''}
+      ${(() => {
+        // 일반 케이스: expansion(문자열). newbie 케이스: phase2_roadmap(객체)
+        if (sp.expansion) {
+          return `<div style="margin-top:14px;padding:14px;background:var(--bg-tertiary);border-left:3px solid var(--accent-amber);border-radius:6px;font-size:13px;color:var(--text-secondary);line-height:1.7"><strong style="color:var(--accent-amber)">준비 후 확대안:</strong> ${sp.expansion}</div>`;
+        }
+        const rm = sp.phase2_roadmap;
+        if (rm) {
+          const routesHtml = (rm.routes || []).map(r =>
+            `<div class="kv" style="display:flex;justify-content:space-between;padding:3px 0"><span>${r.route} <span style="color:var(--text-secondary);font-size:11px">· ${r.role}</span></span><span class="pl-ratio" style="color:var(--accent-amber)">${r.ratio}%</span></div>`
+          ).join('');
+          return `<div style="margin-top:14px;padding:14px;background:var(--bg-tertiary);border-left:3px solid var(--accent-amber);border-radius:6px;font-size:13px;color:var(--text-secondary);line-height:1.7">
+            <strong style="color:var(--accent-amber)">2단계 확대 로드맵</strong>
+            ${rm.trigger ? `<div style="margin-top:6px"><span style="color:var(--text-primary)">발동 조건:</span> ${rm.trigger}</div>` : ''}
+            ${routesHtml ? `<div style="margin-top:10px">${routesHtml}</div>` : ''}
+            ${rm.expansion_note ? `<div style="margin-top:10px;font-size:12px;opacity:0.9">${rm.expansion_note}</div>` : ''}
+          </div>`;
+        }
+        return '';
+      })()}
     </div>
 
     <div class="chart-section">
@@ -1919,7 +1939,7 @@ function buildMarkdownFromSteps(r) {
     `## 2. 농가 특성 요약`, r.step2_farm_summary || '-',
     `## 3. 정성지표 판정`, Object.entries(r.step3_qualitative||{}).map(([k,v])=>`- ${k}: ${v}`).join('\n'),
     `## 4. 경로별 평가`, routesMd,
-    `## 5. 추천 포트폴리오`, (r.step5_portfolio?.immediate||[]).map(p=>`- ${p.role} ${p.route}: ${p.ratio}% — ${p.reason}`).join('\n'),
+    `## 5. 추천 포트폴리오`, (r.step5_portfolio?.immediate||r.step5_portfolio?.phase1_immediate||[]).map(p=>`- ${p.role} ${p.route}: ${p.ratio}% — ${p.reason}`).join('\n'),
     `## 6. 추천 사유`, r.step6_strategic_reasoning || '-',
     `## 7. 경로별 강화 과제`, Object.entries(r.step7_competitive_tasks||{}).map(([k,v])=>`- ${k}: ${v}`).join('\n'),
     r.step8_current_comparison?.present_or_not ? `## 8. 현재 구조와 비교\n장점: ${r.step8_current_comparison.advantages}\n추가 부담: ${r.step8_current_comparison.additional_burden}` : '',
