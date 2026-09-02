@@ -2,7 +2,7 @@
   "meta": {
     "version": "0.3.0",
     "generated_at": "2026-04-23T21:43:33.486930",
-    "generated_by": "PIPE-T3 (Agent 병렬 6 위임: Sonnet 3 + Opus 3, 각 3 케이스 × 9단계)",
+    "generated_by": "(Agent 병렬 6 위임: Sonnet 3 + Opus 3, 각 3 케이스 × 9단계)",
     "models_used": [
       "claude-sonnet-4-6",
       "claude-opus-4-7"

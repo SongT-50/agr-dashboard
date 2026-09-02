@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "generated_at": "2026-04-23 → 2026-04-27 verified → 2026-05-11 농지 영역 7건 추가",
-  "generated_by": "IN-T3 → AGR-T3 (2026-05-11 농지 cascade)",
+  "generated_by": "내부 작업 (2026-05-11 농지 cascade)",
   "source": "data.go.kr + data.mafra.go.kr + rda.go.kr (정책실명제) + KAMIS + 농지공간포털(njy.mafra.go.kr) + KASS + OASIS(KREI)",
   "purpose": "AGR 대시보드 v0.3 탭 4 공공데이터 브라우저 로딩용 + 농지 전수조사 5/18~ 시작 D-Day 정합 + 5/18 농진청 미팅 D-7 자료",
   "totals": {
@@ -824,24 +824,24 @@
     "🟡 농업이(e)지 (nongeop_eaji_external) launch 시점 정확 확인 X = 자연 시점 검증 의무"
   ],
   "last_verified_at": "2026-04-27 (URL 200 일괄 영역) + 2026-05-11 (농지 7건 추가, URL fetch verify 자연 시점)",
-  "last_verified_by": "AGR-T3",
+  "last_verified_by": "내부 작업",
   "verification_log": [
     {
       "date": "2026-04-23",
-      "by": "IN-T3",
+      "by": "내부 작업",
       "scope": "1차 수집 + 5건 상세 검증",
       "result": "34건 카탈로그 + Sprint Contract 7/8 PASS"
     },
     {
       "date": "2026-04-27",
-      "by": "AGR-T3",
+      "by": "내부 작업",
       "scope": "메인 라우터(15087193) 검증 + 농진청 OpenAPI 247건 활용 TOP 10 대조 + URL 200 일괄 체크(15건)",
       "result": "신규 6건 추가 + 미확인 publicDataPk 채움(9→6 잔여) + 3060748 URL 404 확인 + 15087193 활용 1660→1665 갱신 + §8 #4 농업기상 직접 매칭으로 격상"
     },
     {
       "date": "2026-05-11",
-      "by": "AGR-T3",
-      "scope": "농지 영역 7건 신규 추가 (F.농지 카테고리 신설) — PIPE-T3 directive 2026-05-11 §1.1 정합 + 5/18 미팅 D-7 + 5/18 농지 전수조사 D-Day 정합",
+      "by": "내부 작업",
+      "scope": "농지 영역 7건 신규 추가 (F.농지 카테고리 신설) — directive 2026-05-11 §1.1 정합 + 5/18 미팅 D-7 + 5/18 농지 전수조사 D-Day 정합",
       "result": "카탈로그 40 → 47 (F.농지 카테고리 7건: 3055540 농지전용현황도 / 15058006 농지정보도 WMS/WFS / 15030111 통계연보 / njy_mafra_external 농지공간포털 / kass_mafra_external KASS / oasis_krei_external OASIS / nongeop_eaji_external 농업이(e)지). 자원 가드 5/5 PASS (push 0 / 외부 메일 0 / sub-agent 0 / 비용 0). URL fetch verify X = 5/12 cross_review 자연 시점 보강 영역."
     }
   ]

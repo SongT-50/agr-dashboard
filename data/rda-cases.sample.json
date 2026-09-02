@@ -2,14 +2,14 @@
   "meta": {
     "version": "0.3.0-sample",
     "generated_at": "2026-04-23T21:00:00+09:00",
-    "generated_by": "PIPE-T3 (Agent tool model=sonnet/opus 병렬 + codex:codex-rescue 3번째 모델 독립 검증)",
+    "generated_by": "(Agent tool model=sonnet/opus 병렬 + codex:codex-rescue 3번째 모델 독립 검증)",
     "models_used": ["claude-sonnet-4-6", "claude-opus-4-7", "codex-gpt-5-3-codex"],
     "prompt_variants": ["v4"],
     "prompt_sources": {
       "v4": "농가-판매경로-포트폴리오-프롬포트_v4.txt (250줄, 일반 농가)"
     },
     "topsis_version": "v4 (5농가유형 × 5평가기준, C5 동적조정)",
-    "replaced": "AGR-T3 19:11 임시 플레이스홀더 덮어씀 (3모델 교차검증 완료)",
+    "replaced": "19:11 임시 플레이스홀더 덮어씀 (3모델 교차검증 완료)",
     "xmr_verification": {
       "status": "COMPLETE",
       "majority_vote": "C5 = 진입가능성(동적) — 2:1 (Opus + Codex vs Sonnet)",

@@ -4,7 +4,7 @@
   "unit_basis": "10a (300평)",
   "currency": "원",
   "source": "농사로 (nongsaro.go.kr) 소득분석표",
-  "collected_at": "2026-06-16 (12작목 추가: AGR-T1)",
+  "collected_at": "2026-06-16 (12작목 추가)",
   "crops": [
     {
       "name": "사과",

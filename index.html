@@ -634,7 +634,7 @@ body {
   .bar-row { grid-template-columns: 80px 1fr 70px; }
   .form-row { grid-template-columns: 1fr; }
 }
-/* ═══ 인터랙션 레이어 (2026-06-16 AGR-T1) — 살아 움직이는 대시보드 ═══ */
+/* ═══ 인터랙션 레이어 (2026-06-16) — 살아 움직이는 대시보드 ═══ */
 @keyframes barGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:none; } }
 
@@ -936,7 +936,7 @@ body {
         </div>
 
         <button class="btn-diagnose" onclick="runPortfolio()">포트폴리오 진단 실행</button>
-        <div class="cost-note">API 호출 없음 — PIPE-T3가 사전 실행한 결과를 로드합니다 (비용 0원)</div>
+        <div class="cost-note">API 호출 없음 — 사전 실행한 결과를 로드합니다 (비용 0원)</div>
       </div>
 
       <!-- 오른쪽: 결과 영역 (placeholder) -->
@@ -944,7 +944,7 @@ body {
         <div class="empty-state">
           <div class="icon">&#x1F33E;</div>
           <div>좌측 "사례 선택"에서 가상 농가를 선택하거나,<br>직접 입력 후 "포트폴리오 진단 실행"을 눌러주세요.</div>
-          <div style="font-size:11px;margin-top:12px;font-family:'JetBrains Mono',monospace;opacity:0.5">※ PIPE-T3 사전 실행 JSON 로드 방식 (data/rda-cases.json)</div>
+          <div style="font-size:11px;margin-top:12px;font-family:'JetBrains Mono',monospace;opacity:0.5">※ 사전 실행 JSON 로드 방식 (data/rda-cases.json)</div>
         </div>
       </div>
     </div>
@@ -956,7 +956,7 @@ body {
       <h3>농촌진흥청 공공데이터 카탈로그</h3>
       <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;line-height:1.7">
         data.go.kr 및 농진청 공식 API 중 AGR 대시보드와 연동 가능한 데이터셋.
-        IN-T3 1차 수집(2026-04-23) → AGR-T3 메인 라우터 검증(2026-04-27) → AGR-T3 농지 영역 7건 추가 (F.농지 카테고리 신설, 2026-05-11, 5/18 농지 전수조사 D-Day 정합).
+        1차 수집(2026-04-23) → 메인 라우터 검증(2026-04-27) → 농지 영역 7건 추가 (F.농지 카테고리 신설, 2026-05-11, 5/18 농지 전수조사 D-Day 정합).
       </div>
       <div class="pubdata-controls" id="pubdata-controls" style="display:none">
         <input type="text" id="pd-search" placeholder="이름·기관·설명에서 검색…" autocomplete="off">
@@ -1647,7 +1647,7 @@ function findModelResult(results, prefix) {
 }
 
 async function loadRdaCases() {
-  // 우선순위: PIPE-T3 실제 JSON → AGR-T3 개발용 샘플 → 비활성
+  // 우선순위: 실제 JSON → 개발용 샘플 → 비활성
   const paths = ['data/rda-cases.json', 'data/rda-cases.sample.json'];
   for (const p of paths) {
     try {
@@ -1682,7 +1682,7 @@ async function loadRdaCases() {
       const banner = document.querySelector('#tab-portfolio .portfolio-banner .pb-sub');
       if (banner) {
         if (isSample) {
-          banner.innerHTML += ` <span style="color:var(--accent-amber);font-weight:600">· 샘플 ${caseCount}건 로드 (PIPE-T3 실측 20건 대체 예정)</span>`;
+          banner.innerHTML += ` <span style="color:var(--accent-amber);font-weight:600">· 샘플 ${caseCount}건 로드 (실측 20건 대체 예정)</span>`;
         } else {
           banner.innerHTML += ` <span style="color:var(--accent-green);font-weight:600">· 실측 ${caseCount}건 로드 완료 (3모델 교차검증)</span>`;
         }
@@ -1740,7 +1740,7 @@ function runPortfolio() {
   if (!RDA_CASES) {
     panel.innerHTML = `<div class="empty-state"><div class="icon">&#x23F3;</div>
       <div>rda-cases.json이 아직 준비되지 않았습니다.<br>
-      PIPE-T3의 사전 실행 완료 후 (4/25 저녁 예정) 다시 시도해주세요.</div></div>`;
+      사전 실행 완료 후 (4/25 저녁 예정) 다시 시도해주세요.</div></div>`;
     return;
   }
 
@@ -1988,7 +1988,7 @@ function renderSimpleMarkdown(md) {
 }
 
 // ────────────────────────────────────────────────
-// Tab 4: Public Data Catalog (공공데이터) — IN-T3가 박제한 카탈로그 로드
+// Tab 4: Public Data Catalog (공공데이터) — 박제한 카탈로그 로드
 // ────────────────────────────────────────────────
 let __PUBDATA = null;
 async function loadPubdata() {
@@ -2067,7 +2067,7 @@ function renderPubdataFiltered() {
         </div>${verifBanner}
       </div>`;
 
-    // IN-T3 §G 로딩 우선순위 반영 (A 판매경로 → B 농가경영 → C 소비자행동 → D 정보교육 → E 식품부 → F 농지)
+    // §G 로딩 우선순위 반영 (A 판매경로 → B 농가경영 → C 소비자행동 → D 정보교육 → E 식품부 → F 농지)
     const catOrder = ['A.판매경로', 'B.농가경영', 'C.소비자행동', 'D.정보교육', 'E.식품부', 'F.농지'];
     const sections = Object.keys(byCat).sort((a,b)=>{
       const ai = catOrder.indexOf(a), bi = catOrder.indexOf(b);
